@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://kit.fontawesome.com/444436207a.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <title>Vue Github Users</title>
+  </head>
+  <body>
+    <div id="app">
+      <p v-if="allFavorites.length" class="favorites__title">Favorites</p>
+      <div class="favorites">
+        <transition-group name="list">
+          <div class="favorites__container" v-for="favorite in allFavorites" :key="favorite.login">
+            <div class="favorite" @click="showFavorite(favorite)">
+              <img :src="favorite.avatar_url" alt="favorite.login" />
+            </div>
+            <span>@{{ favorite.login }}</span>
+          </div>
+        </transition-group>
+      </div>
+      <div class="main">
+        <h3>devfinder</h3>
+        <div class="search">
+          <form action="" class="form" @submit.prevent="doSearch">
+            <div class="input__container">
+              <i class="icon fa-solid fa-magnifying-glass"></i>
+              <input
+                type="text"
+                name="name"
+                id="search__input"
+                v-model="search"
+                placeholder="Search Github Username..."
+              />
+              <button type="submit" class="btn">Search</button>
+            </div>
+          </form>
+        </div>
+        <div v-if="result" class="info">
+          <div v-if="found" class="info__user">
+            <img class="user__img" :src="found.avatar_url" :alt="found.login" />
+            <div class="user__title">
+              <div>
+                <span>
+                  <h3 class="name">{{ found.name }}</h3>
+                  <a :href="found.html_url" rel="noopener" target="_blank" class="username">@{{ found.login }}</a>
+                </span>
+                <p class="joined">Joined {{ found.joined }}</p>
+              </div>
+              <p class="bio">{{ found.bio || 'This profile has no bio' }}</p>
+            </div>
+            <div class="user__stats">
+              <div>
+                <h4>Repos</h4>
+                <span>{{ found.public_repos }}</span>
+              </div>
+              <div>
+                <h4>Followers</h4>
+                <span>{{ found.followers }}</span>
+              </div>
+              <div>
+                <h4>Following</h4>
+                <span>{{ found.following }}</span>
+              </div>
+            </div>
+            <button v-if="isFavorite" class="toggle-favorite" @click="removeFavorites" style="color: #c52747">
+              <i class="fa-solid fa-heart"></i>
+            </button>
+            <button v-else class="toggle-favorite" @click="addFavorites">
+              <i class="fa-solid fa-heart"></i>
+            </button>
+            <div class="user__contact">
+              <span>
+                <i class="fa-solid fa-location-dot"></i>
+                <p class="location">{{ found.location || 'Not available' }}</p>
+              </span>
+              <span>
+                <i class="fa-brands fa-twitter"></i>
+                <a :href="'https://twitter.com/' + (found.twitter_username || '')" rel="noopener" target="_blank">
+                  {{ found.twitter_username || 'Not available' }}
+                </a>
+              </span>
+              <span>
+                <i class="fa-solid fa-link"></i>
+                <a class="blog" :href="found.blog" rel="noopener" target="_blank">
+                  {{ found.blog || 'Not available' }}</a
+                >
+              </span>
+              <span>
+                <i class="fa-solid fa-building"></i>
+                <p class="company">{{ found.company || 'Not available' }}</p>
+              </span>
+            </div>
+          </div>
+
+          <div v-if="error" class="error">
+            <p> {{ error }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<script>
+  const { createApp } = Vue,
+    API = 'https://api.github.com/users/'
+
+  const MAX_REQUEST_TIME_MS = 5000
+
+  const app = createApp({
+    data() {
+      return {
+        search: null,
+        result: null,
+        found: null,
+        error: null,
+        favorites: new Map()
+      }
+    },
+    created() {
+      const savedFavorites = JSON.parse(localStorage.getItem('favorites'))
+      if (savedFavorites?.length) {
+        const favorites = new Map(savedFavorites.map(favorite => [favorite.login, favorite]))
+        this.favorites = favorites
+      }
+    },
+    computed: {
+      isFavorite() {
+        return this.favorites.has(this.found.login)
+      },
+      allFavorites() {
+        return Array.from(this.favorites.values())
+      }
+    },
+    methods: {
+      async doSearch() {
+        this.found = this.error = null
+        this.result = true
+
+        const foundInFavorites = this.favorites.get(this.search)
+
+        const shouldRequest = (() => {
+          if (!!foundInFavorites) {
+            const { lastRequestTime } = foundInFavorites
+            const now = Date.now()
+            return now - lastRequestTime > MAX_REQUEST_TIME_MS
+          }
+          return false
+        })() // IIFE
+
+        if (!!foundInFavorites && !shouldRequest) {
+          this.search = null
+          return (this.found = foundInFavorites)
+        }
+
+        try {
+          if (this.search) {
+            const response = await fetch(API + this.search)
+            const data = await response.json()
+
+            if (!response.ok) throw new Error('Not Found')
+            this.found = data
+
+            let options = {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            }
+
+            this.found.joined = new Date(this.found.created_at).toLocaleDateString('en-UK', options)
+          } else {
+            this.result = false
+          }
+        } catch (error) {
+          this.error = error
+        } finally {
+          this.search = null
+        }
+      },
+      addFavorites() {
+        this.found.lastRequestTime = Date.now()
+        this.favorites.set(this.found.login, this.found)
+        this.updateStorage()
+      },
+      removeFavorites() {
+        this.favorites.delete(this.found.login)
+        this.updateStorage()
+      },
+      showFavorite(favorite) {
+        this.result = true
+        this.found = favorite
+      },
+      updateStorage() {
+        localStorage.setItem('favorites', JSON.stringify(this.allFavorites))
+      }
+    }
+  })
+
+  app.mount('#app')
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@100;200;300;400;500;600;700&display=swap');
+
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  body {
+    background-color: #141c2f;
+    font-family: 'IBM Plex Mono', monospace;
+    color: white;
+    height: 100vh;
+  }
+
+  input,
+  button {
+    font-family: 'IBM Plex Mono', monospace;
+    border-style: none;
+    padding: 10px 16px;
+    color: white;
+  }
+
+  input {
+    background: none;
+    flex-grow: 1;
+  }
+
+  h4 {
+    font-size: 12px;
+    font-weight: 500;
+    color: #677189;
+  }
+
+  a {
+    text-decoration: none;
+    color: white;
+  }
+
+  input::placeholder {
+    color: white;
+  }
+
+  input:focus {
+    outline: none;
+  }
+
+  #app {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+  }
+
+  .list-enter-active,
+  .list-leave-active {
+    transition: all 0.5s ease;
+  }
+  .list-enter-from,
+  .list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  .favorites__title {
+    position: absolute;
+    margin: 1em;
+    font-weight: 600;
+  }
+
+  .favorites {
+    margin-top: 2em;
+    padding: 1em;
+    display: flex;
+    gap: 1em;
+    grid-column: 1 / 4;
+    flex-wrap: wrap;
+  }
+
+  .favorites__container {
+    height: fit-content;
+  }
+
+  .favorite {
+    width: fit-content;
+    position: relative;
+    height: 60px;
+    background-color: #1f2a48;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .favorites__container:hover span {
+    opacity: 1;
+  }
+
+  .favorite img {
+    height: 100%;
+  }
+
+  .favorites__container span {
+    opacity: 0;
+    margin-top: 10px;
+    padding: 6px 10px;
+    font-size: 14px;
+    position: absolute;
+    z-index: 100;
+    background-color: #0b0f18;
+    border-radius: 6px;
+    transition: opacity 0.3s ease;
+  }
+
+  .main {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+  }
+
+  .search,
+  .info {
+    background-color: #1f2a48;
+    padding: 10px;
+    border-radius: 10px;
+    min-width: 500px;
+  }
+
+  .search {
+    margin: 12px 0;
+  }
+
+  .input__container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 8px;
+  }
+
+  .icon {
+    color: #007afe;
+  }
+
+  .btn {
+    border-radius: 8px;
+    background-color: #007afe;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    background-color: #0263ca;
+  }
+
+  .error {
+    padding: 1em;
+    font-weight: 600;
+    background-color: #c52747;
+    border-radius: 8px;
+  }
+
+  .info__user {
+    width: 100%;
+    padding: 24px;
+    display: grid;
+    gap: 1.2em;
+    grid-template-columns: min-content repeat(2, 1fr);
+    grid-template-rows: repeat(3, max-content);
+  }
+
+  .user__img {
+    width: 100px;
+    border-radius: 50%;
+  }
+
+  .user__title {
+    grid-column: 2 / 4;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .user__title div {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .user__title p,
+  .joined {
+    font-size: 0.8em;
+  }
+
+  .name {
+    max-width: 250px;
+  }
+
+  .joined {
+    text-align: right;
+  }
+
+  .username {
+    color: #0263ca;
+    margin-bottom: 10px;
+    font-size: 0.8em;
+  }
+
+  .bio {
+    color: #677189;
+    max-width: 420px;
+  }
+
+  .user__stats {
+    background-color: #141c2f;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px;
+    grid-column: 2 / 4;
+    border-radius: 8px;
+  }
+
+  .toggle-favorite {
+    color: #1f2a48;
+    font-size: 18px;
+    padding: 8px 10px;
+    place-self: end start;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .user__contact {
+    font-size: 14px;
+    grid-column: 2 / 4;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(170px, max-content));
+    grid-auto-rows: 20px;
+    gap: 1.4em 8%;
+  }
+
+  .user__contact span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .company {
+    max-width: 170px;
+  }
+
+  .blog {
+    max-width: 155px;
+    word-wrap: break-word;
+  }
+</style>

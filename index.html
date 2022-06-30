@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://unpkg.com/vue@3"></script>
     <script src="https://kit.fontawesome.com/444436207a.js" crossorigin="anonymous"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <title>Vue Github Users</title>
   </head>
   <body>
@@ -282,6 +281,7 @@
     gap: 1em;
     grid-column: 1 / 4;
     flex-wrap: wrap;
+    align-content: flex-start;
   }
 
   .favorites__container {
@@ -290,7 +290,6 @@
 
   .favorite {
     width: fit-content;
-    position: relative;
     height: 60px;
     background-color: #1f2a48;
     border-radius: 8px;
@@ -452,7 +451,7 @@
   }
 
   .blog {
-    max-width: 155px;
+    max-width: 160px;
     word-wrap: break-word;
   }
 </style>

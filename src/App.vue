@@ -1,47 +1,100 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import { reactive, ref } from 'vue'
+import Favorites from './components/Favorites.vue'
+import ResultCard from './components/ResultCard/index.vue'
+import SearchIcon from './components/Icons/SearchIcon.vue'
+
+const favorites = reactive(new Map())
+
+const search = ref(null)
+const currentUser = ref(null)
+
+const error = ref(null)
+
+const doSearch = async () => {
+  const API_URL = 'https://api.github.com/users/'
+
+  currentUser.value = null
+  error.value = null
+
+  try {
+    if (search.value) {
+      const response = await fetch(API_URL + search.value)
+      const data = await response.json()
+
+      if (!response.ok) throw new Error('Not Found')
+      currentUser.value = data
+      search.value = null
+    }
+  } catch (err) {
+    error.value = err.message
+  }
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+  <Favorites :favoritesList="favorites" />
+  <div class="main">
+    <h3>devfinder</h3>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+    <!-- Search Input -->
+    <div class="search">
+      <form action="" class="form" @submit.prevent="doSearch">
+        <div class="input__container">
+          <SearchIcon class="search-icon" />
+          <input
+            type="text"
+            name="name"
+            id="search__input"
+            placeholder="Search Github Username..."
+            v-model="search"
+          />
+          <button type="submit" class="btn">Search</button>
+        </div>
+      </form>
     </div>
-  </header>
 
-  <main>
-    <TheWelcome />
-  </main>
+    <!-- Result -->
+    <ResultCard v-if="currentUser" :user="currentUser" class="info" :error="error" />
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
+.main {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.search,
+.info {
+  background-color: #1f2a48;
+  padding: 10px;
+  border-radius: 10px;
+  min-width: 500px;
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
+.search {
+  margin: 12px 0;
+}
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+.search-icon {
+  color: #007afe;
+}
+.btn {
+  border-radius: 8px;
+  background-color: #007afe;
+  cursor: pointer;
+}
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.btn:hover {
+  background-color: #0263ca;
+}
+
+.input__container {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 8px;
 }
 </style>

@@ -10,6 +10,7 @@
   </head>
   <body>
     <div id="app">
+      <!-- Favorites -->
       <p v-if="allFavorites.length" class="favorites__title">Favorites</p>
       <div class="favorites">
         <transition-group name="list">
@@ -21,9 +22,11 @@
           </div>
         </transition-group>
       </div>
+      <!-- main component -->
       <div class="main">
         <h3>devfinder</h3>
         <div class="search">
+          <!-- Input -->
           <form action="" class="form" @submit.prevent="doSearch">
             <div class="input__container">
               <i class="icon fa-solid fa-magnifying-glass"></i>
@@ -38,6 +41,7 @@
             </div>
           </form>
         </div>
+        <!-- Card result with user data -->
         <div v-if="result" class="info">
           <div v-if="found" class="info__user">
             <img class="user__img" :src="found.avatar_url" :alt="found.login" />

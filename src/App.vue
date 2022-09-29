@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import Favorites from './components/Favorites.vue'
 import ResultCard from './components/ResultCard/index.vue'
 import SearchIcon from './components/Icons/SearchIcon.vue'
+import vAutoAnimate from '@formkit/auto-animate'
 
 const favorites = reactive(new Map())
 
@@ -57,7 +58,7 @@ const doSearch = async () => {
     </div>
 
     <!-- Result -->
-    <div v-if="result" class="info">
+    <div v-auto-animate v-if="result" class="info">
       <ResultCard v-if="currentUser && !error" :user="currentUser" />
       <!-- Error -->
       <div v-else class="error">

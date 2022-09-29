@@ -7,16 +7,10 @@ const props = defineProps({
   user: {
     type: Object,
     required: true
-  },
-  error: {
-    type: String,
-    required: false
   }
 })
 
-const { user, error } = props
-
-console.log(error)
+const { user } = props
 
 user.joined = new Date(user.created_at).toLocaleDateString('en-UK', {
   year: 'numeric',
@@ -45,10 +39,6 @@ user.joined = new Date(user.created_at).toLocaleDateString('en-UK', {
         <UserStats :user="user" />
         <button class="toggle-favorite"> <HeartIcon /> </button>
         <UserContact :user="user" />
-      </div>
-
-      <div v-if="error" class="error">
-        <p> {{ error }}</p>
       </div>
     </div>
   </div>

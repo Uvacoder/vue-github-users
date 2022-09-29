@@ -8,6 +8,7 @@ const favorites = reactive(new Map())
 
 const search = ref(null)
 const currentUser = ref(null)
+const result = ref(null)
 
 const error = ref(null)
 
@@ -17,6 +18,7 @@ const doSearch = async () => {
   currentUser.value = null
   error.value = null
 
+  result.value = true
   try {
     if (search.value) {
       const response = await fetch(API_URL + search.value)
@@ -25,7 +27,7 @@ const doSearch = async () => {
       if (!response.ok) throw new Error('Not Found')
       currentUser.value = data
       search.value = null
-    }
+    } else result.value = null
   } catch (err) {
     error.value = err.message
   }
@@ -55,7 +57,13 @@ const doSearch = async () => {
     </div>
 
     <!-- Result -->
-    <ResultCard v-if="currentUser" :user="currentUser" class="info" :error="error" />
+    <div v-if="result" class="info">
+      <ResultCard v-if="currentUser && !error" :user="currentUser" />
+      <!-- Error -->
+      <div v-else class="error">
+        <p> {{ error }}</p>
+      </div>
+    </div>
   </div>
 </template>
 

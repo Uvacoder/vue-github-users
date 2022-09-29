@@ -1,11 +1,9 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 import Favorites from './components/Favorites.vue'
 import ResultCard from './components/ResultCard/index.vue'
 import SearchIcon from './components/Icons/SearchIcon.vue'
 import vAutoAnimate from '@formkit/auto-animate'
-
-const favorites = reactive(new Map())
 
 const search = ref(null)
 const currentUser = ref(null)
@@ -36,7 +34,9 @@ const doSearch = async () => {
 </script>
 
 <template>
-  <Favorites :favoritesList="favorites" />
+  <!-- ⬇️⬇️⬇️ Favorites component, implementation put off ⬇️⬇️⬇️ -->
+  <!-- <Favorites :favoritesList="favoritesArray" /> -->
+
   <div class="main">
     <h3>devfinder</h3>
 

@@ -10,6 +10,8 @@ const props = defineProps({
   }
 })
 
+const emits = defineEmits(['toggleFavorite'])
+
 const { user } = props
 
 user.joined = new Date(user.created_at).toLocaleDateString('en-UK', {
@@ -37,7 +39,10 @@ user.joined = new Date(user.created_at).toLocaleDateString('en-UK', {
         </div>
 
         <UserStats :user="user" />
-        <button class="toggle-favorite"> <HeartIcon /> </button>
+
+        <!-- ⬇️⬇️⬇️ toggle favorite button implementation put off ⬇️⬇️⬇️ -->
+        <!-- <button class="toggle-favorite" @click="$emit('toggleFavorite')"> <HeartIcon /> </button> -->
+
         <UserContact :user="user" />
       </div>
     </div>

@@ -1,7 +1,7 @@
 <script setup>
 const props = defineProps({
   favoritesList: {
-    type: Map,
+    type: Array,
     required: true
   }
 })
@@ -13,31 +13,19 @@ const { favoritesList } = props
   <div>
     <p v-if="favoritesList.length" class="favorites__title">Favorites</p>
     <div class="favorites">
-      <Transition name="list">
-        <div>
-          <div class="favorites__container" v-for="user in favoritesList" :key="user.login">
-            <div class="favorite" @click="showFavorite(user)">
-              <img :src="user.avatar_url" alt="user.login" />
-            </div>
-            <span>@{{ user.login }}</span>
+      <div>
+        <div class="favorites__container" v-for="user in favoritesList" :key="user.login">
+          <div class="favorite" @click="showFavorite(user)">
+            <img :src="user.avatar_url" alt="user.login" />
           </div>
+          <span>@{{ user.login }}</span>
         </div>
-      </Transition>
+      </div>
     </div>
   </div>
 </template>
 
 <style>
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.5s ease;
-}
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
 .favorites__title {
   position: absolute;
   margin: 1em;

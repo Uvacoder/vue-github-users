@@ -27,11 +27,11 @@ const doSearch = async () => {
 
       if (!response.ok) throw new Error('Not Found')
       currentUser.value = data
-      search.value = null
     } else result.value = null
   } catch (err) {
     error.value = err.message
   }
+  search.value = null
 }
 </script>
 
@@ -59,9 +59,9 @@ const doSearch = async () => {
 
     <!-- Result -->
     <div v-auto-animate v-if="result" class="info">
-      <ResultCard v-if="currentUser && !error" :user="currentUser" />
+      <ResultCard v-if="currentUser" :user="currentUser" />
       <!-- Error -->
-      <div v-else class="error">
+      <div v-if="error" class="error">
         <p> {{ error }}</p>
       </div>
     </div>

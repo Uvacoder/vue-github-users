@@ -1,4 +1,7 @@
 <script setup>
+import { onMounted } from 'vue'
+import vAutoAnimate from '@formkit/auto-animate'
+
 const props = defineProps({
   favoritesList: {
     type: Array,
@@ -6,20 +9,26 @@ const props = defineProps({
   }
 })
 
-const { favoritesList } = props
+const emits = defineEmits(['showUser'])
+
+const showFavorite = user => {
+  emits('showUser', user)
+}
+
+onMounted(() => {
+  const { favoritesList } = props
+})
 </script>
 
 <template>
   <div>
     <p v-if="favoritesList.length" class="favorites__title">Favorites</p>
-    <div class="favorites">
-      <div>
-        <div class="favorites__container" v-for="user in favoritesList" :key="user.login">
-          <div class="favorite" @click="showFavorite(user)">
-            <img :src="user.avatar_url" alt="user.login" />
-          </div>
-          <span>@{{ user.login }}</span>
+    <div class="favorites" v-auto-animate>
+      <div class="favorites__container" v-for="user in favoritesList" :key="user.login">
+        <div class="favorite" @click="showFavorite(user)">
+          <img :src="user.avatar_url" alt="user.login" />
         </div>
+        <span>@{{ user.login }}</span>
       </div>
     </div>
   </div>

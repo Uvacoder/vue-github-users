@@ -2,17 +2,27 @@
 import UserStats from './UserStats.vue'
 import UserContact from './UserContact.vue'
 import HeartIcon from '../Icons/HeartIcon.vue'
+import { ref } from 'vue'
 
 const props = defineProps({
   user: {
     type: Object,
     required: true
+  },
+  isFavorite: {
+    type: Boolean
   }
 })
 
 const emits = defineEmits(['toggleFavorite'])
 
 const { user } = props
+const isFavorite = ref(props.isFavorite)
+
+const toggleFavorite = () => {
+  emits('toggleFavorite')
+  isFavorite.value = !isFavorite.value
+}
 
 user.joined = new Date(user.created_at).toLocaleDateString('en-UK', {
   year: 'numeric',
@@ -40,8 +50,9 @@ user.joined = new Date(user.created_at).toLocaleDateString('en-UK', {
 
         <UserStats :user="user" />
 
-        <!-- ⬇️⬇️⬇️ toggle favorite button implementation put off ⬇️⬇️⬇️ -->
-        <!-- <button class="toggle-favorite" @click="$emit('toggleFavorite')"> <HeartIcon /> </button> -->
+        <button class="toggle-favorite" @click="toggleFavorite" :class="{ 'is-favorite': isFavorite }">
+          <HeartIcon />
+        </button>
 
         <UserContact :user="user" />
       </div>
@@ -115,5 +126,9 @@ user.joined = new Date(user.created_at).toLocaleDateString('en-UK', {
   place-self: end start;
   border-radius: 5px;
   cursor: pointer;
+}
+
+.is-favorite {
+  color: #c52747;
 }
 </style>

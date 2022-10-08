@@ -1,13 +1,29 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import Favorites from './components/Favorites.vue'
 import ResultCard from './components/ResultCard/index.vue'
 import SearchIcon from './components/Icons/SearchIcon.vue'
 import vAutoAnimate from '@formkit/auto-animate'
+import { computed } from '@vue/reactivity'
 
 const search = ref(null)
 const currentUser = ref(null)
 const result = ref(null)
+
+const favorites = ref(new Map())
+
+const favoritesArray = computed(() => {
+  return Array.from(favorites.value.values())
+})
+
+const isFavorite = computed(() => {
+  return favorites.value.has(currentUser.value.login)
+})
+
+const setUser = user => {
+  search.value = user.login
+  doSearch()
+}
 
 const error = ref(null)
 
@@ -31,11 +47,31 @@ const doSearch = async () => {
   }
   search.value = null
 }
+
+watch(favoritesArray, () => {
+  localStorage.setItem('favorites', JSON.stringify(favoritesArray.value))
+})
+
+const toggleFavorite = () => {
+  if (!isFavorite.value) {
+    favorites.value.set(currentUser.value.login, currentUser.value)
+    return
+  }
+  favorites.value.delete(currentUser.value.login)
+}
+
+onMounted(() => {
+  const savedFavorites = JSON.parse(localStorage.getItem('favorites'))
+  if (savedFavorites?.length) {
+    const newFavorites = new Map(savedFavorites.map(favorite => [favorite.login, favorite]))
+    favorites.value = newFavorites
+  }
+})
 </script>
 
 <template>
-  <!-- ⬇️⬇️⬇️ Favorites component, implementation put off ⬇️⬇️⬇️ -->
-  <!-- <Favorites :favoritesList="favoritesArray" /> -->
+  <!-- Favorites -->
+  <Favorites :favoritesList="favoritesArray" @showUser="setUser" />
 
   <div class="main">
     <h3>devfinder</h3>
@@ -58,8 +94,14 @@ const doSearch = async () => {
     </div>
 
     <!-- Result -->
-    <div v-auto-animate v-if="result" class="info">
-      <ResultCard v-if="currentUser" :user="currentUser" />
+    <div v-if="result" class="info">
+      <ResultCard
+        v-auto-animate
+        v-if="currentUser"
+        :user="currentUser"
+        :isFavorite="isFavorite"
+        @toggleFavorite="toggleFavorite"
+      />
       <!-- Error -->
       <div v-if="error" class="error">
         <p> {{ error }}</p>

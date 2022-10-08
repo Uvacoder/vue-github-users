@@ -9,11 +9,11 @@ The website is not fully responsive, so make sure you test it out in desktop or 
 
 ![Demo](./img/demo.gif)
 
-<!-- <hr>
+<hr>
 
 ## Live Demo
 
-[https://johansantana.github.io/vue-github-users/](https://johansantana.github.io/vue-github-users/) -->
+[https://johansantana.github.io/vue-github-users/](https://johansantana.github.io/vue-github-users/)
 
 <hr>
 
